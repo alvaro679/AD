@@ -1,87 +1,57 @@
 ```mermaid
-classDiagram
-    direction LR
+sequenceDiagram
 
-    class Fichero {
-        -String ruta
-        +leerFichero() List~String~
-    }
+    participant U as Usuario
+    participant C as Controlador
+    participant SF as ServFichero
+    participant F as Fichero
+    participant SP as ServPregunta
+    participant DB as BD
+    participant V as Consola
 
-    class ServicioFichero {
-        -Fichero fichero
-        +ServicioFichero(String ruta)
-        +obtenerPreguntasDeFichero() List~Pregunta~
-    }
+    U ->> C: iniciar()
 
-    class Pregunta {
-        -int id
-        -String enunciado
-        -List~String~ opciones
-        -String respuestaCorrecta
-        +getId()
-        +getEnunciado()
-        +getOpciones()
-        +getRespuestaCorrecta()
-    }
+    C ->> V: mostrarMensaje()
+    C ->> SF: obtenerPreguntas()
+    SF ->> F: leerFichero()
+    F -->> SF: lineas
+    SF -->> C: preguntas
 
-    class ListaPreguntas {
-        -List~Pregunta~ listaPreguntas
-        +getListaPreguntas()
-        +setListaPreguntas()
-        +addPregunta(Pregunta)
-    }
+    C ->> SP: borrarTodo()
+    SP ->> DB: DELETE
 
-    class ServicioPregunta {
-        +guardarListaEnBD(List~Pregunta~)
-        +obtenerPreguntasAleatorias(int) List~Pregunta~
-        +borrarTodo()
-    }
+    C ->> SP: guardarPreguntas()
+    SP ->> DB: INSERT preguntas
+    DB -->> SP: id generado
+    SP ->> DB: INSERT respuestas
 
-    class DBConnection {
-        -URL : String
-        -USER : String
-        -PASSWORD : String
-        -Connection connection
-        +getConnection() Connection
-    }
+    C ->> V: pedirNumeroPreguntas()
+    V ->> U: solicita numero
+    U -->> V: numero
+    V -->> C: cantidad
 
-    class Consola {
-        +mostrarMensaje(String)
-        +pedirNumeroPreguntas() int
-        +mostrarPreguntaYPedirRespuesta(Pregunta,int) String
-        +mostrarResultados(int,int,List~String~)
-    }
+    C ->> SP: obtenerAleatorias()
+    SP ->> DB: SELECT aleatorias
+    DB -->> SP: lista
+    SP -->> C: preguntasJuego
 
-    class Escaner {
-        <<static>>
-        +leerString() String
-        +leerInt() int
-    }
+    loop por pregunta
+        C ->> V: mostrarPregunta()
+        V ->> U: muestra enunciado
+        U -->> V: respuesta
+        V -->> C: respuestaUser
+        C ->> C: validarRespuesta()
+    end
 
-    class ControladorPreguntas {
-        -ServicioFichero sFichero
-        -ServicioPregunta sPregunta
-        -Consola consola
-        +iniciar()
-    }
+    C ->> V: mostrarResultados()
+    V ->> U: resultados
 
-    %% RELACIONES
+    C ->> SP: borrarTodo()
+    SP ->> DB: DELETE
 
-    ControladorPreguntas --> ServicioFichero : usa
-    ControladorPreguntas --> ServicioPregunta : usa
-    ControladorPreguntas --> Consola : usa
+    C ->> U: fin
 
-    ServicioFichero --> Fichero : contiene
-    ServicioFichero --> Pregunta : crea
-
-    ServicioPregunta --> DBConnection : usa
-    ServicioPregunta --> Pregunta : crea
-
-    ListaPreguntas --> Pregunta : contiene
-
-    Consola --> Escaner : usa métodos estáticos
 ```
-
 
 
 
